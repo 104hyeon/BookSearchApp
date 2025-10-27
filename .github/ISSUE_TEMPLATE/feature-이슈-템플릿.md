@@ -1,0 +1,16 @@
+---
+name: Feature 이슈 템플릿
+about: 기능추가 이슈 템플릿입니다! 아래 양식에 맞춰서 작성해주세요
+title: "[Feature] Button Component 생성"
+labels: "✨ Feature"
+assignees: ''
+
+---
+
+### 만들고자 하는 기능이 무엇인가요?
+ex) Todo 생성 기능
+
+### 해당 기능을 구현하기 위해 할 일이 무엇인가요?
+1. Job1
+2. Job2
+3. Job3
