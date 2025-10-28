@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		6903D7B42EAF3C2000E7A4CA /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 6903D7B32EAF3C2000E7A4CA /* SnapKit */; };
+		6903D7D82EAF5E8B00E7A4CA /* RxSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 6903D7D72EAF5E8B00E7A4CA /* RxSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +41,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6903D7D82EAF5E8B00E7A4CA /* RxSwift in Frameworks */,
 				6903D7B42EAF3C2000E7A4CA /* SnapKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -84,6 +86,7 @@
 			name = BookSearchApp;
 			packageProductDependencies = (
 				6903D7B32EAF3C2000E7A4CA /* SnapKit */,
+				6903D7D72EAF5E8B00E7A4CA /* RxSwift */,
 			);
 			productName = BookSearchApp;
 			productReference = 6903D7772EAF24AF00E7A4CA /* BookSearchApp.app */;
@@ -115,6 +118,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				6903D7B22EAF3C2000E7A4CA /* XCRemoteSwiftPackageReference "SnapKit" */,
+				6903D7D62EAF5E8B00E7A4CA /* XCRemoteSwiftPackageReference "RxSwift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 6903D7782EAF24AF00E7A4CA /* Products */;
@@ -350,6 +354,14 @@
 				minimumVersion = 5.7.1;
 			};
 		};
+		6903D7D62EAF5E8B00E7A4CA /* XCRemoteSwiftPackageReference "RxSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ReactiveX/RxSwift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.9.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -357,6 +369,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6903D7B22EAF3C2000E7A4CA /* XCRemoteSwiftPackageReference "SnapKit" */;
 			productName = SnapKit;
+		};
+		6903D7D72EAF5E8B00E7A4CA /* RxSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6903D7D62EAF5E8B00E7A4CA /* XCRemoteSwiftPackageReference "RxSwift" */;
+			productName = RxSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
