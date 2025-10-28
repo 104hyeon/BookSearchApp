@@ -168,5 +168,15 @@ extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSo
         
         return headerView
     }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let seletedBookInfo = bookInfoList[indexPath.row]
+        let modalVC = InfoModalViewController()
+        modalVC.modalPresentationStyle = .fullScreen
+        modalVC.configure(with: seletedBookInfo)
+        present(modalVC, animated: true, completion: nil)
+    }
 
 }
+
+
