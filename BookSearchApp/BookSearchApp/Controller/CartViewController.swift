@@ -22,7 +22,9 @@ class CartViewController: UIViewController {
         configureUI()
         setConstraints()
         setupNavigationBar()
-        setupNotification()
+    }
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
         loadCartData()
     }
     
@@ -43,17 +45,6 @@ class CartViewController: UIViewController {
         CoreDataManager.shared.fetchBooks()
         self.cartItems = CoreDataManager.shared.cartItems ?? []
         tableView.reloadData()
-    }
-    
-    private func setupNotification() {
-        NotificationCenter.default.addObserver(self, selector: #selector(handelCartUpdate), name: .cartUpdated, object: nil)
-    }
-    
-    @objc
-    private func handelCartUpdate() {
-        DispatchQueue.main.async {
-            self.loadCartData()
-        }
     }
     // 상단 내비게이션바 설정
     private func setupNavigationBar() {

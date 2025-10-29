@@ -1,10 +1,6 @@
 import CoreData
 import UIKit
 
-extension Notification.Name {
-    static let cartUpdated = Notification.Name("cartUpdated")
-}
-
 class CoreDataManager {
     static let shared  = CoreDataManager()
     private init() {}
@@ -51,7 +47,6 @@ class CoreDataManager {
             
             self.cartItems = results.compactMap { BookInfo(bookData: $0) }
             
-            NotificationCenter.default.post(name: .cartUpdated, object: nil)
         } catch {
             print("데이터 불러오기 실패")
         }
@@ -64,7 +59,6 @@ class CoreDataManager {
             try context.execute(deleteRequest)
             context.reset()
             self.cartItems = []
-            NotificationCenter.default.post(name: .cartUpdated, object: nil)
         } catch {
             print("데이터 삭제 실패")
         }
@@ -81,7 +75,6 @@ class CoreDataManager {
             }
             try context.save()
             
-            NotificationCenter.default.post(name: .cartUpdated, object: nil)
         } catch {
         }
     }
