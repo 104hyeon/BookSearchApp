@@ -119,6 +119,7 @@ class InfoModalViewController: UIViewController {
         titleLabel.snp.makeConstraints {
             $0.top.equalToSuperview().inset(20)
             $0.centerX.equalToSuperview()
+            $0.width.equalTo(300)
         }
         authorLabel.snp.makeConstraints {
             $0.top.equalTo(titleLabel.snp.bottom).offset(8)
