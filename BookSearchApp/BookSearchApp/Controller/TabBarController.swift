@@ -4,8 +4,8 @@ import SnapKit
 
 class TabBarController: UITabBarController {
     
-    let searchVC = SearchViewController()
-    let cartVC = CartViewController()
+    let searchVC = UINavigationController(rootViewController: SearchViewController())
+    let cartVC = UINavigationController(rootViewController: CartViewController())
     
     override func viewDidLoad() {
         super.viewDidLoad()
