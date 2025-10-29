@@ -14,6 +14,7 @@ class InfoModalViewController: UIViewController {
         let label = UILabel()
         label.textColor = .black
         label.font = .boldSystemFont(ofSize: 25)
+        label.textAlignment = .center
         return label
     }()
     private let authorLabel: UILabel = {
