@@ -6,13 +6,15 @@ class CartViewController: UIViewController {
 
     var cartItems: [BookInfo] = []
     
-    private lazy var collectionView: UICollectionView = {
-        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: createLayout())
-        collectionView.delegate = self
-        collectionView.dataSource = self
-        collectionView.backgroundColor = .white
-        collectionView.register(BookInfoCell.self, forCellWithReuseIdentifier: BookInfoCell.id)
-        return collectionView
+    private lazy var tableView: UITableView = {
+        let tableView = UITableView()
+        tableView.backgroundColor = .white
+        tableView.rowHeight = 70
+        tableView.separatorStyle = .none
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.register(BookInfoTableCell.self, forCellReuseIdentifier: BookInfoTableCell.id)
+        return tableView
     }()
     
     override func viewDidLoad() {
@@ -26,21 +28,21 @@ class CartViewController: UIViewController {
     
     private func configureUI() {
         view.backgroundColor = .white
-        [ collectionView ].forEach { view.addSubview($0) }
+        [ tableView ].forEach { view.addSubview($0) }
     }
     
     private func setConstraints() {
-        collectionView.snp.makeConstraints {
+        tableView.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide.snp.top)
             $0.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
-            $0.horizontalEdges.equalTo(view.safeAreaLayoutGuide.snp.horizontalEdges)
+            $0.leading.trailing.equalToSuperview()
         }
     }
     
     private func loadCartData() {
         CoreDataManager.shared.fetchBooks()
         self.cartItems = CoreDataManager.shared.cartItems ?? []
-        collectionView.reloadData()
+        tableView.reloadData()
     }
     
     private func setupNotification() {
@@ -77,58 +79,45 @@ class CartViewController: UIViewController {
     private func addTapped() {
         self.tabBarController?.selectedIndex = 0
     }
-    // 컬렉션뷰 레이아웃 설정
-    private func createLayout() -> UICollectionViewLayout {
-        let itemsize = NSCollectionLayoutSize(
-            widthDimension: .fractionalWidth(1.0),
-            heightDimension: .fractionalHeight(1.0)
-        )
-        let item = NSCollectionLayoutItem(layoutSize: itemsize)
-        
-        let groupSize = NSCollectionLayoutSize(
-            widthDimension: .fractionalWidth(1.0),
-            heightDimension: .absolute(60)
-        )
-        
-        let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
-        
-        let section = NSCollectionLayoutSection(group: group)
-        
-        
-        section.interGroupSpacing = 5
-        section.contentInsets = .init(top: 10, leading: 10, bottom: 10, trailing: 10)
-        let configuration = UICollectionViewCompositionalLayoutConfiguration()
-        let layout = UICollectionViewCompositionalLayout(section: section, configuration: configuration)
-        
-        return layout
-    }
+
     // 셀 개별 삭제
     private func deleteItem(at indexPath: IndexPath) {
-        let bookToDelete = cartItems[indexPath.item]
+        let bookToDelete = cartItems[indexPath.row]
         guard let isbn = bookToDelete.isbn else {
             return
         }
         CoreDataManager.shared.deleteBook(with: isbn)
         
-        cartItems.remove(at: indexPath.item)
-        collectionView.deleteItems(at: [indexPath])
+        cartItems.remove(at: indexPath.row)
+        tableView.deleteRows(at: [indexPath], with: .automatic)
     }
 
 }
 
-extension CartViewController: UICollectionViewDelegate, UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+extension CartViewController: UITableViewDelegate, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return cartItems.count
     }
     
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: BookInfoCell.id, for: indexPath) as? BookInfoCell else {
-            return UICollectionViewCell()
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: BookInfoTableCell.id, for: indexPath) as? BookInfoTableCell else {
+            return UITableViewCell()
         }
-        let book = cartItems[indexPath.item]
+        let book = cartItems[indexPath.row]
         cell.configure(with: book)
-        
+
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: "삭제") { [weak self] (action, view, complicationHandler) in
+            self?.deleteItem(at: indexPath)
+            complicationHandler(true)
+        }
+        deleteAction.image = UIImage(systemName: "trash")
+        let configuration = UISwipeActionsConfiguration(actions: [deleteAction])
+        configuration.performsFirstActionWithFullSwipe = false
+        return configuration
     }
 }
 
