@@ -4,9 +4,10 @@ import SnapKit
 
 class SearchViewController: UIViewController {
     
-    private var bookInfoList = [BookInfo]()
+    private var searchBookList = [BookInfo]()
+    private var recentBookList = [BookInfo]()
+    private var activeSections: [Section] = []
     private let bookService = BookService()
-    
     
     private let searchBar: UISearchBar = {
         let searchBar = UISearchBar()
@@ -20,6 +21,7 @@ class SearchViewController: UIViewController {
         collectionView.dataSource = self
         collectionView.backgroundColor = .white
         collectionView.register(BookInfoCell.self, forCellWithReuseIdentifier: BookInfoCell.id)
+        collectionView.register(ThumbnailCell.self, forCellWithReuseIdentifier: ThumbnailCell.id)
         collectionView.register(
             SectionHeaderView.self,
             forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
@@ -56,7 +58,51 @@ class SearchViewController: UIViewController {
         }
     }
     
-    private func createLayout() -> UICollectionViewLayout {
+    private func createLayout() -> UICollectionViewCompositionalLayout {
+        let layout = UICollectionViewCompositionalLayout { [weak self] (sectionIndex, enviroment) -> NSCollectionLayoutSection? in
+            guard let self = self else { return nil }
+            guard let currentSection = self.getSectionType(for: sectionIndex) else { return nil }
+            
+            switch currentSection {
+            case .recentList:
+                return self.recentLayout()
+            case .searchList:
+                return self.searchLayout()
+            }
+        }
+        return layout
+    }
+    private func recentLayout() ->NSCollectionLayoutSection {
+        let itemsize = NSCollectionLayoutSize(
+            widthDimension: .absolute(80),
+            heightDimension: .absolute(80)
+        )
+        let item = NSCollectionLayoutItem(layoutSize: itemsize)
+        
+        let groupSize = NSCollectionLayoutSize(
+            widthDimension: .absolute(80),
+            heightDimension: .absolute(80)
+        )
+        
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+        
+        let section = NSCollectionLayoutSection(group: group)
+        
+        section.orthogonalScrollingBehavior = .continuous
+        section.interGroupSpacing = 5
+        section.contentInsets = .init(top: 10, leading: 10, bottom: 10, trailing: 10)
+        
+        let headersize = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1.0),
+            heightDimension: .estimated(40))
+        let header = NSCollectionLayoutBoundarySupplementaryItem(
+            layoutSize: headersize, elementKind: UICollectionView.elementKindSectionHeader,
+            alignment: .top)
+        section.boundarySupplementaryItems = [header]
+        return section
+    }
+    
+    private func searchLayout() -> NSCollectionLayoutSection {
         let itemsize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
             heightDimension: .fractionalHeight(1.0)
@@ -75,8 +121,6 @@ class SearchViewController: UIViewController {
         
         section.interGroupSpacing = 5
         section.contentInsets = .init(top: 10, leading: 10, bottom: 10, trailing: 10)
-        
-        
         let headersize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
             heightDimension: .estimated(40))
@@ -85,11 +129,33 @@ class SearchViewController: UIViewController {
             alignment: .top)
         section.boundarySupplementaryItems = [header]
         
-        let configuration = UICollectionViewCompositionalLayoutConfiguration()
-        let layout = UICollectionViewCompositionalLayout(section: section, configuration: configuration)
-        
-        return layout
+        return section
     }
+    
+    // 데이터 로드 후 activeSections에 배열 업데이트
+    private func updatedActiveSections() {
+        activeSections = []
+        
+        // 섹션 순서 고정하기
+        for sectionCase in Section.allCases {
+            switch sectionCase {
+            case .recentList:
+                if !recentBookList.isEmpty {
+                    activeSections.append(.recentList)
+                }
+            case .searchList:
+                if !searchBookList.isEmpty {
+                    activeSections.append(.searchList)
+                }
+            }
+        }
+    }
+    // 인덱스에 매핑된 섹션 찾는 함수
+    private func getSectionType(for index: Int) -> Section? {
+        guard index >= 0, index < activeSections.count else { return nil }
+        return activeSections[index]
+    }
+    
 }
 // 서치바 델리게이트 관련
 extension SearchViewController: UISearchBarDelegate {
@@ -103,7 +169,8 @@ extension SearchViewController: UISearchBarDelegate {
             switch result {
             case .success(let bookResponse):
                 print("검색 성공. 받아온 책 개수: \(bookResponse.documents.count)")
-                self.bookInfoList = bookResponse.documents
+                self.searchBookList = bookResponse.documents
+                self.updatedActiveSections()
                 self.collectionView.reloadData()
             case .failure(let error):
                 if let networkError = error as? NetworkError {
@@ -132,19 +199,32 @@ enum Section: Int, CaseIterable {
 extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSource {
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return bookInfoList.isEmpty ? 0 : 1
+        return activeSections.count
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        bookInfoList.count
+        guard let currentSetion = getSectionType(for: section) else { return 0 }
+        switch currentSetion {
+        case .recentList: return recentBookList.count
+        case .searchList: return searchBookList.count
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: BookInfoCell.id, for: indexPath) as? BookInfoCell else {
-            return UICollectionViewCell()
+        guard let currentSection = getSectionType(for: indexPath.section) else { return UICollectionViewCell() }
+
+        switch currentSection {
+        case .recentList:
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ThumbnailCell.id, for: indexPath) as? ThumbnailCell else { return UICollectionViewCell() }
+            let bookInfo = recentBookList[indexPath.item]
+            cell.configure(with: bookInfo)
+            return cell
+        case .searchList:
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: BookInfoCell.id, for: indexPath) as? BookInfoCell else { return UICollectionViewCell() }
+            let bookInfo = searchBookList[indexPath.item]
+            cell.configure(with: bookInfo)
+            return cell
         }
-        cell.configure(with: bookInfoList[indexPath.row])
-        return cell
     }
     // 헤더뷰 인덱스 별로 타이틀 지정
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
@@ -156,18 +236,30 @@ extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSo
             withReuseIdentifier: SectionHeaderView.id,
             for: indexPath
         ) as? SectionHeaderView else { return UICollectionReusableView() }
-        
-        let searchListSection = Section.allCases.first(where: { $0 == .searchList })
-        
-        if let title = searchListSection?.title {
-            headerView.configure(with: title)
-        }
-        
+        guard let currentSection = getSectionType(for: indexPath.section) else { return UICollectionReusableView() }
+        headerView.configure(with: currentSection.title)
         return headerView
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let seletedBookInfo = bookInfoList[indexPath.row]
+        guard let currentSection = getSectionType(for: indexPath.section) else { return }
+        let selectedBookInfo: BookInfo
+        
+        if currentSection == .searchList {
+            selectedBookInfo = searchBookList[indexPath.item]
+            
+            if let index = recentBookList.firstIndex(where: { $0.isbn == selectedBookInfo.isbn }) {
+                recentBookList.remove(at: index)
+            }
+        recentBookList.insert(selectedBookInfo, at: 0)
+            updatedActiveSections()
+        collectionView.reloadData()
+            
+        } else if currentSection == .recentList {
+            selectedBookInfo = recentBookList[indexPath.item]
+        } else {
+            return
+        }
         let modalVC = InfoModalViewController()
         modalVC.modalPresentationStyle = .fullScreen
         
@@ -175,13 +267,10 @@ extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSo
             guard let saveBookData = bookInfo.toSaveBookData() else { return }
             
             CoreDataManager.shared.saveBook(bookData: saveBookData)
-            
         }
-        modalVC.configure(with: seletedBookInfo)
-        print("모달 뷰 present시도")
-        self.present(modalVC, animated: true, completion: nil)
-        print("모달뷰 present 완료")
+        modalVC.configure(with: selectedBookInfo)
         
+        self.present(modalVC, animated: true, completion: nil)
     }
 }
 
