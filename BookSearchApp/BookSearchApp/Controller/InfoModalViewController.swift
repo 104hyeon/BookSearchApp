@@ -5,6 +5,7 @@ import SnapKit
 class InfoModalViewController: UIViewController {
     
     var bookInfo: BookInfo?
+    var onCartTapped: ((BookInfo) -> Void)?
     
     private let scrollView = UIScrollView()
     private let contentView = UIView()
@@ -112,7 +113,7 @@ class InfoModalViewController: UIViewController {
         }
         contentView.snp.makeConstraints {
             $0.edges.equalToSuperview()
-            $0.centerX.equalToSuperview()
+            $0.width.equalTo(scrollView.snp.width)
         }
         
         titleLabel.snp.makeConstraints {
@@ -135,7 +136,6 @@ class InfoModalViewController: UIViewController {
         }
         contentsLabel.snp.makeConstraints {
             $0.top.equalTo(priceLabel.snp.bottom).offset(10)
-            $0.centerX.equalToSuperview()
             $0.leading.trailing.equalToSuperview().inset(30)
             $0.bottom.equalToSuperview().inset(30)
         }
@@ -143,14 +143,14 @@ class InfoModalViewController: UIViewController {
     }
     
     private func updateUI() {
-        guard let info = bookInfo else { return }
+        guard let data = bookInfo else { return }
         
-        titleLabel.text = info.title
-        authorLabel.text = info.authors?.joined(separator: ", ")
-        priceLabel.text = "\(info.price ?? 0)원"
-        contentsLabel.text = info.contents
+        titleLabel.text = data.title
+        authorLabel.text = data.authors?.joined(separator: ", ")
+        priceLabel.text = "\(data.price ?? 0)원"
+        contentsLabel.text = data.contents
         
-        if let urlString = info.thumbnail, let url = URL(string: urlString) {
+        if let urlString = data.thumbnail, let url = URL(string: urlString) {
             URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
                 if let error = error {
                     print("이미지 다운로드 실패: \(error.localizedDescription)")
@@ -170,6 +170,10 @@ class InfoModalViewController: UIViewController {
     }
     @objc
     private func cartTapped() {
+        
+        guard let bookToCart = self.bookInfo else { return }
+        
+        self.onCartTapped?(bookToCart)
         
         let alert = UIAlertController(title: "책 담기 완료", message: "담은 책 보기에서 확인 가능합니다.", preferredStyle: .alert)
         let alertAction = UIAlertAction(title: "확인", style: .default) { [weak self] _ in

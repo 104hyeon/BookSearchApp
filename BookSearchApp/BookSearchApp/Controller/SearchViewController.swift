@@ -7,6 +7,7 @@ class SearchViewController: UIViewController {
     private var bookInfoList = [BookInfo]()
     private let bookService = BookService()
     
+    
     private let searchBar: UISearchBar = {
         let searchBar = UISearchBar()
         searchBar.placeholder = "책 제목을 검색하세요"
@@ -89,15 +90,11 @@ class SearchViewController: UIViewController {
         
         return layout
     }
-
 }
-// 서치바 델리게이스 관련
+// 서치바 델리게이트 관련
 extension SearchViewController: UISearchBarDelegate {
+    // 서치바 델리게이트 필수 함수
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        self.searchStared(searchBar)
-    }
-    
-    func searchStared(_ searchBar: UISearchBar) {
         searchBar.resignFirstResponder()
         
         guard let query = searchBar.text, !query.isEmpty else { return }
@@ -114,11 +111,11 @@ extension SearchViewController: UISearchBarDelegate {
                 } else {
                     print("책 검색 실패: 알 수 없는 에러 (\(error.localizedDescription))")
                 }
-                
             }
         }
     }
 }
+
 // 섹션 별 타이틀
 enum Section: Int, CaseIterable {
     case recentList
@@ -173,10 +170,19 @@ extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSo
         let seletedBookInfo = bookInfoList[indexPath.row]
         let modalVC = InfoModalViewController()
         modalVC.modalPresentationStyle = .fullScreen
+        
+        modalVC.onCartTapped = { bookInfo in
+            guard let saveBookData = bookInfo.toSaveBookData() else { return }
+            
+            CoreDataManager.shared.saveBook(bookData: saveBookData)
+            
+        }
         modalVC.configure(with: seletedBookInfo)
-        present(modalVC, animated: true, completion: nil)
+        print("모달 뷰 present시도")
+        self.present(modalVC, animated: true, completion: nil)
+        print("모달뷰 present 완료")
+        
     }
-
 }
 
 

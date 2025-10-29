@@ -26,6 +26,16 @@ class BookInfoCell: UICollectionViewCell {
         label.font = .systemFont(ofSize: 15)
         return label
     }()
+    private let deleteButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("삭제", for: .normal)
+        button.backgroundColor = .systemRed
+        button.tintColor = .white
+        button.layer.cornerRadius = 8
+        button.isHidden = true
+        return button
+    }()
+    private let containerView = UIView()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -37,11 +47,13 @@ class BookInfoCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     private func configureUI() {
-        
+        contentView.backgroundColor = .white
         [
          titleLabel,
          authorLabel,
-         priceLabel
+         priceLabel,
+         containerView,
+         deleteButton
         ].forEach { contentView.addSubview($0) }
         self.layer.borderWidth = 2.0
         self.layer.borderColor = UIColor.lightGray.cgColor
@@ -75,5 +87,5 @@ class BookInfoCell: UICollectionViewCell {
         self.priceLabel.text = "\(price)원"
         
     }
-    
+
 }
