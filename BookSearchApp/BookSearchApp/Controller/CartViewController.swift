@@ -42,8 +42,7 @@ class CartViewController: UIViewController {
     }
     
     private func loadCartData() {
-        CoreDataManager.shared.fetchBooks()
-        self.cartItems = CoreDataManager.shared.cartItems ?? []
+        self.cartItems = CoreDataManager.shared.fetchBooks()
         tableView.reloadData()
     }
     // 상단 내비게이션바 설정

@@ -10,7 +10,6 @@ class TabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-    
     }
     
     init() {
@@ -29,11 +28,9 @@ class TabBarController: UITabBarController {
         
         let tabs = [searchVC, cartVC]
         self.setViewControllers(tabs, animated: false)
-
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
 }

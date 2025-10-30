@@ -85,15 +85,11 @@ class InfoModalViewController: UIViewController {
         view.backgroundColor = .white
         [ scrollView, buttonStackView ].forEach { view.addSubview($0) }
         scrollView.addSubview(contentView)
-        
         [
-            titleLabel,
-            authorLabel,
-            thumbnailIV,
-            priceLabel,
-            contentsLabel
+            titleLabel, authorLabel, thumbnailIV,priceLabel, contentsLabel
         ].forEach { contentView.addSubview($0) }
     }
+    
     private func setConstraints() {
         buttonStackView.snp.makeConstraints {
             $0.leading.trailing.equalToSuperview().inset(20)
@@ -141,17 +137,16 @@ class InfoModalViewController: UIViewController {
             $0.leading.trailing.equalToSuperview().inset(30)
             $0.bottom.equalToSuperview().inset(30)
         }
-
     }
-    
+    // 책 검색 데이터 받으면 UI에 업데이트 하는 함수
     private func updateUI() {
         guard let data = bookInfo else { return }
-        
+    
         titleLabel.text = data.title
         authorLabel.text = data.authors?.joined(separator: ", ")
         priceLabel.text = "\(data.price ?? 0)원"
         contentsLabel.text = data.contents
-        
+        // 썸네일URL 이미지뷰에 이미지로 넣기
         if let urlString = data.thumbnail, let url = URL(string: urlString) {
             URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
                 if let error = error {
@@ -170,36 +165,29 @@ class InfoModalViewController: UIViewController {
             thumbnailIV.image = nil
         }
     }
+    // "담기" 버튼 누르면 실행될 함수
     @objc
     private func cartTapped() {
-        
         guard let bookToCart = self.bookInfo else { return }
-        
         self.onCartTapped?(bookToCart)
-        
-        let alert = UIAlertController(title: "책 담기 완료", message: "담은 책 보기에서 확인 가능합니다.", preferredStyle: .alert)
+        let alert = UIAlertController(
+            title: "책 담기 완료", message: "담은 책 보기에서 확인 가능합니다.", preferredStyle: .alert)
         let alertAction = UIAlertAction(title: "확인", style: .default) { [weak self] _ in
              self?.dismiss(animated: true)
         }
-        
         alert.addAction(alertAction)
         self.present(alert, animated: true, completion: nil)
-
     }
-    
+    // "x" 버튼 누르면 실행될 함수
     @objc
     private func dismissTapped() {
         self.dismiss(animated: true)
     }
-
-    
     // 메인에서 호출할 함수
     func configure(with info: BookInfo) {
         self.bookInfo = info
-        
         if isViewLoaded {
             updateUI()
         }
-        
     }
 }
