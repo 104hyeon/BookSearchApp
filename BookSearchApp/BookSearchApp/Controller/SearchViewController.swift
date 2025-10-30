@@ -170,7 +170,7 @@ extension SearchViewController: UISearchBarDelegate {
         searchBar.resignFirstResponder()
         
         guard let query = searchBar.text, !query.isEmpty else { return }
-        bookService.search(query: query, size: 50) { [weak self] result in
+        bookService.search(query: query) { [weak self] result in
             guard let self = self else { return }
             switch result {
             case .success(let bookResponse):
