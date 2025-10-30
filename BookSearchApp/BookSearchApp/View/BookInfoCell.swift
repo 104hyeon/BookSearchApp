@@ -20,10 +20,7 @@ class BookInfoCell: UICollectionViewCell {
         infoView.snp.makeConstraints { $0.edges.equalToSuperview() }
     }
         
-    
     func configure(with bookInfo: BookInfo) {
         self.infoView.configure(with: bookInfo)
-
     }
-
 }

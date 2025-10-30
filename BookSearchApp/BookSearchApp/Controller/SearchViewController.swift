@@ -38,11 +38,7 @@ class SearchViewController: UIViewController {
     
     private func configureUI() {
         view.backgroundColor = .white
-        [
-            searchBar,
-            collectionView
-        ].forEach { view.addSubview($0) }
-        
+        [ searchBar, collectionView ].forEach { view.addSubview($0) }
     }
     
     private func setConstraints() {
@@ -57,21 +53,21 @@ class SearchViewController: UIViewController {
             $0.horizontalEdges.equalTo(view.safeAreaLayoutGuide.snp.horizontalEdges)
         }
     }
-    
+    // 전체 컬렉션뷰 레이아웃
     private func createLayout() -> UICollectionViewCompositionalLayout {
         let layout = UICollectionViewCompositionalLayout { [weak self] (sectionIndex, enviroment) -> NSCollectionLayoutSection? in
             guard let self = self else { return nil }
             guard let currentSection = self.getSectionType(for: sectionIndex) else { return nil }
             
             switch currentSection {
-            case .recentList:
-                return self.recentLayout()
-            case .searchList:
-                return self.searchLayout()
+            case .recentList: return self.recentLayout()
+            case .searchList: return self.searchLayout()
             }
         }
         return layout
     }
+    
+    // "최근 본 책" 레이아웃
     private func recentLayout() ->NSCollectionLayoutSection {
         let itemsize = NSCollectionLayoutSize(
             widthDimension: .absolute(80),
@@ -83,11 +79,9 @@ class SearchViewController: UIViewController {
             widthDimension: .absolute(80),
             heightDimension: .absolute(80)
         )
-        
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
         
         let section = NSCollectionLayoutSection(group: group)
-        
         section.orthogonalScrollingBehavior = .continuous
         section.interGroupSpacing = 5
         section.contentInsets = .init(top: 10, leading: 10, bottom: 10, trailing: 10)
@@ -101,7 +95,7 @@ class SearchViewController: UIViewController {
         section.boundarySupplementaryItems = [header]
         return section
     }
-    
+    // "검색 결과" 레이아웃
     private func searchLayout() -> NSCollectionLayoutSection {
         let itemsize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
@@ -113,14 +107,12 @@ class SearchViewController: UIViewController {
             widthDimension: .fractionalWidth(1.0),
             heightDimension: .absolute(60)
         )
-        
         let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
         
         let section = NSCollectionLayoutSection(group: group)
-        
-        
         section.interGroupSpacing = 5
         section.contentInsets = .init(top: 10, leading: 10, bottom: 10, trailing: 10)
+        
         let headersize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
             heightDimension: .estimated(40))
@@ -130,6 +122,19 @@ class SearchViewController: UIViewController {
         section.boundarySupplementaryItems = [header]
         
         return section
+    }
+    
+    // 섹션 별 타이틀
+    enum Section: Int, CaseIterable {
+        case recentList
+        case searchList
+        
+        var title: String {
+            switch self {
+            case .recentList: return "최근 본 책"
+            case .searchList: return "검색 기록"
+            }
+        }
     }
     
     // 데이터 로드 후 activeSections에 배열 업데이트
@@ -150,13 +155,14 @@ class SearchViewController: UIViewController {
             }
         }
     }
+    
     // 인덱스에 매핑된 섹션 찾는 함수
     private func getSectionType(for index: Int) -> Section? {
         guard index >= 0, index < activeSections.count else { return nil }
         return activeSections[index]
     }
-    
 }
+
 // 서치바 델리게이트 관련
 extension SearchViewController: UISearchBarDelegate {
     // 서치바 델리게이트 필수 함수
@@ -183,19 +189,7 @@ extension SearchViewController: UISearchBarDelegate {
     }
 }
 
-// 섹션 별 타이틀
-enum Section: Int, CaseIterable {
-    case recentList
-    case searchList
-    
-    var title: String {
-        switch self {
-        case .recentList: return "최근 본 책"
-        case .searchList: return "검색 기록"
-        }
-    }
-}
-
+// 컬렉션뷰 델리게이트, 데이터소스 관련
 extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSource {
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
@@ -226,50 +220,47 @@ extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSo
             return cell
         }
     }
-    // 헤더뷰 인덱스 별로 타이틀 지정
+    // 헤더뷰 타이틀 지정해주는 함수
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         guard kind == UICollectionView.elementKindSectionHeader else {
             return UICollectionReusableView()
         }
         guard let headerView = collectionView.dequeueReusableSupplementaryView(
-            ofKind: kind,
-            withReuseIdentifier: SectionHeaderView.id,
-            for: indexPath
-        ) as? SectionHeaderView else { return UICollectionReusableView() }
-        guard let currentSection = getSectionType(for: indexPath.section) else { return UICollectionReusableView() }
+            ofKind: kind, withReuseIdentifier: SectionHeaderView.id, for: indexPath
+        ) as? SectionHeaderView else {
+            return UICollectionReusableView()
+        }
+        guard let currentSection = getSectionType(for: indexPath.section) else {
+            return UICollectionReusableView() }
         headerView.configure(with: currentSection.title)
         return headerView
     }
-    
+    // 셀 눌렸을 때 실행 될 함수
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         guard let currentSection = getSectionType(for: indexPath.section) else { return }
         let selectedBookInfo: BookInfo
         
-        if currentSection == .searchList {
+        switch currentSection {
+        case .searchList:
             selectedBookInfo = searchBookList[indexPath.item]
-            
             if let index = recentBookList.firstIndex(where: { $0.isbn == selectedBookInfo.isbn }) {
                 recentBookList.remove(at: index)
             }
-        recentBookList.insert(selectedBookInfo, at: 0)
+            recentBookList.insert(selectedBookInfo, at: 0)
             updatedActiveSections()
-        collectionView.reloadData()
-            
-        } else if currentSection == .recentList {
+            collectionView.reloadData()
+        case .recentList:
             selectedBookInfo = recentBookList[indexPath.item]
-        } else {
-            return
         }
+        
         let modalVC = InfoModalViewController()
         modalVC.modalPresentationStyle = .fullScreen
         
         modalVC.onCartTapped = { bookInfo in
             guard let saveBookData = bookInfo.toSaveBookData() else { return }
-            
             CoreDataManager.shared.saveBook(bookData: saveBookData)
         }
         modalVC.configure(with: selectedBookInfo)
-        
         self.present(modalVC, animated: true, completion: nil)
     }
 }

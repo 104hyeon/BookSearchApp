@@ -76,9 +76,5 @@ class BookInfoView: UIView {
         self.authorLabel.text = authors
         guard let price = bookInfo.price else { return }
         self.priceLabel.text = "\(price)원"
-        
     }
-
 }
-
-    

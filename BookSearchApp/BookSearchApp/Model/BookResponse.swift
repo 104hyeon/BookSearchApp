@@ -1,5 +1,4 @@
 import Foundation
-import CoreData
 
 struct BookResponse: Codable {
     let documents: [BookInfo]
@@ -29,17 +28,6 @@ struct BookInfo: Codable {
         
         return SaveBookData(title: title, authors: authorsStr, price: priceVlue, isbn: isbn, thumbnail: thumbnail, contents: contents)
     }
-    
-    init?(bookData: NSManagedObject) {
-        guard let title = bookData.value(forKey: "title") as? String,
-              let authorStr = bookData.value(forKey: "authors") as? String,
-              let isbn = bookData.value(forKey: "isbn") as? String else { return nil}
-        self.isbn = isbn
-        self.title = title
-        self.authors = [authorStr]
-        self.price = bookData.value(forKey: "price") as? Int
-        self.thumbnail = bookData.value(forKey: "thumbnail") as? String
-        self.contents = bookData.value(forKey: "contents") as? String
-    }
+
 }
 
