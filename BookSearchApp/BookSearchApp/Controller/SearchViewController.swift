@@ -190,7 +190,6 @@ extension SearchViewController: UISearchBarDelegate {
         self.isPaginating = true
         
         bookService.search(query: query, page: page) { [weak self] result in
-            defer { self?.isPaginating = false }
             guard let self = self else { return }
             switch result {
             case .success(let bookResponse):
@@ -205,12 +204,9 @@ extension SearchViewController: UISearchBarDelegate {
                 
                 self.updatedActiveSections()
                 self.collectionView.reloadData()
-            case .failure(let error):
-                if let networkError = error as? NetworkError {
-                    print("책 검색 실패: \(networkError.errorTitle)")
-                } else {
-                    print("책 검색 실패: 알 수 없는 에러 (\(error.localizedDescription))")
-                }
+                self.isPaginating = false
+            case .failure:
+                print("책 검색 실패")
             }
         }
     }
@@ -290,10 +286,12 @@ extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSo
         modalVC.configure(with: selectedBookInfo)
         self.present(modalVC, animated: true, completion: nil)
     }
+    
+    // 화면 끝을
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let offsetY = scrollView.contentOffset.y
-        let contentHeight = scrollView.contentSize.height
-        let frameHeight = scrollView.frame.size.height
+        let offsetY = scrollView.contentOffset.y            // 뷰의 가장 위가 얼마나 움직였는지
+        let contentHeight = scrollView.contentSize.height   // 스크롤뷰 전체 높이
+        let frameHeight = scrollView.frame.size.height      // 실제로 보이는 영역 높이
         
         if offsetY > contentHeight - frameHeight {
             guard let query = self.currentQuery, hasMoreData, !isPaginating else { return }
