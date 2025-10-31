@@ -8,6 +8,11 @@ class SearchViewController: UIViewController {
     private var recentBookList = [BookInfo]()
     private var activeSections: [Section] = []
     private let bookService = BookService()
+    // 페이지네이션 상태관리용 변수
+    private var currentPage: Int = 1             // 현재 불러온 페이지 번호
+    private var isPaginating: Bool = false         // 현재 데이터를 불러오는 중인지 확인(중복 방지)
+    private var hasMoreData: Bool = true          // 다음 페이지 데이터가 더 있는지 확인
+    private var currentQuery: String?       // 현재 검색된 쿼리
     
     private let searchBar: UISearchBar = {
         let searchBar = UISearchBar()
@@ -170,12 +175,34 @@ extension SearchViewController: UISearchBarDelegate {
         searchBar.resignFirstResponder()
         
         guard let query = searchBar.text, !query.isEmpty else { return }
-        bookService.search(query: query) { [weak self] result in
+        // 첫 검색 시 상태 초기화
+        self.currentPage = 1
+        self.hasMoreData = true
+        self.currentQuery = query
+        self.searchBookList = []
+        
+        requestSearch(query: query, page: self.currentPage)
+    }
+    
+    private func requestSearch(query: String, page: Int) {
+        // 중복 요청 방지
+        guard !isPaginating && hasMoreData else { return }
+        self.isPaginating = true
+        
+        bookService.search(query: query, page: page) { [weak self] result in
+            defer { self?.isPaginating = false }
             guard let self = self else { return }
             switch result {
             case .success(let bookResponse):
-                print("검색 성공. 받아온 책 개수: \(bookResponse.documents.count)")
-                self.searchBookList = bookResponse.documents
+                print("검색 성공. 현재 페이지: \(page), 받아온 책 개수: \(bookResponse.documents.count)")
+                // 마지막 데이터 확인하고 10보다 적으면 끝냄
+                if bookResponse.documents.count < 10 {
+                    self.hasMoreData = false
+                }
+                // 데이터랑 페이지 추가
+                self.searchBookList.append(contentsOf: bookResponse.documents)
+                self.currentPage += 1
+                
                 self.updatedActiveSections()
                 self.collectionView.reloadData()
             case .failure(let error):
@@ -263,6 +290,14 @@ extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSo
         modalVC.configure(with: selectedBookInfo)
         self.present(modalVC, animated: true, completion: nil)
     }
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let offsetY = scrollView.contentOffset.y
+        let contentHeight = scrollView.contentSize.height
+        let frameHeight = scrollView.frame.size.height
+        
+        if offsetY > contentHeight - frameHeight {
+            guard let query = self.currentQuery, hasMoreData, !isPaginating else { return }
+            requestSearch(query: query, page: self.currentPage)
+        }
+    }
 }
-
-
