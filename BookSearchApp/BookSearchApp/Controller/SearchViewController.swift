@@ -93,7 +93,7 @@ class SearchViewController: UIViewController {
         
         let headersize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
-            heightDimension: .estimated(40))
+            heightDimension: .absolute(40))
         let header = NSCollectionLayoutBoundarySupplementaryItem(
             layoutSize: headersize, elementKind: UICollectionView.elementKindSectionHeader,
             alignment: .top)
@@ -120,7 +120,7 @@ class SearchViewController: UIViewController {
         
         let headersize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
-            heightDimension: .estimated(40))
+            heightDimension: .absolute(40))
         let header = NSCollectionLayoutBoundarySupplementaryItem(
             layoutSize: headersize, elementKind: UICollectionView.elementKindSectionHeader,
             alignment: .top)
